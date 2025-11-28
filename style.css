@@ -1,0 +1,79 @@
+/* Basic layout */
+:root{
+  --sidebar-width: 230px;
+}
+
+* { box-sizing: border-box; }
+
+body, html {
+  height: 100%;
+  margin: 0;
+  font-family: Inter, system-ui, Arial, sans-serif;
+  background: #f7f9fc;
+}
+
+/* Sidebar */
+#sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--sidebar-width);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: transform .28s ease;
+  z-index: 1030;
+}
+
+#sidebar .nav-link { opacity: .95; }
+#sidebar .nav-link:hover { background: rgba(255,255,255,0.04); }
+
+/* Main area */
+.main-content {
+  margin-left: var(--sidebar-width);
+  transition: margin-left .28s ease;
+  min-height: 100vh;
+}
+
+/* When sidebar hidden */
+#sidebar.hidden { transform: translateX(-105%); }
+.main-content.full { margin-left: 0; }
+
+/* Responsive tweaks */
+@media (max-width: 767.98px) {
+  :root{ --sidebar-width: 100%; }
+  #sidebar {
+    width: 100%;
+    transform: translateY(-105%);
+    top: 0;
+  }
+  #sidebar.show-mobile {
+    transform: translateY(0);
+    position: fixed;
+  }
+  .main-content { margin-left: 0; }
+}
+
+/* Cards, transitions */
+.card { border-radius: 10px; }
+.card .card-body { transition: transform .18s ease; }
+.card .card-body:hover { transform: translateY(-3px); }
+
+/* Buttons */
+.btn:focus { box-shadow: 0 0 0 .15rem rgba(13,110,253,.12); }
+
+/* Table */
+.table > thead > tr > th { white-space: nowrap; }
+
+/* Small animation for rows */
+.table tbody tr { transition: background .18s ease, transform .12s ease; }
+.table tbody tr.added {
+  animation: highlight .9s ease;
+}
+@keyframes highlight {
+  0% { background: #e6ffe6; transform: scale(.998); }
+  100% { background: transparent; transform: scale(1); }
+}
+
+/* Minor spacing for header on small screens */
+header .btn { margin-right: .5rem; }

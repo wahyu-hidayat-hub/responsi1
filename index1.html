@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard Admin - CRUD Lengkap</title>
+
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- jsPDF for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app" class="d-flex">
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="bg-primary text-white d-flex flex-column">
+      <div class="sidebar-top p-3 d-flex align-items-center">
+        <div class="brand">
+          <h5 class="m-0">Admin</h5>
+          <small class="opacity-75">CRUD Demo</small>
+        </div>
+        <button id="minimizeBtn" class="btn btn-sm btn-light ms-auto" title="Minimize sidebar"><i class="bi bi-chevron-left"></i></button>
+      </div>
+
+      <nav class="nav flex-column px-2">
+        <a class="nav-link text-white menu-item active" data-page="dashboard"><i class="bi bi-speedometer2"></i><span class="label"> Dashboard</span></a>
+        <a class="nav-link text-white menu-item" data-page="mahasiswa"><i class="bi bi-people"></i><span class="label"> Data Mahasiswa</span></a>
+        <a class="nav-link text-white menu-item" data-page="pengaturan"><i class="bi bi-gear"></i><span class="label"> Pengaturan</span></a>
+      </nav>
+
+      <div class="mt-auto p-3">
+        <button id="toggleSidebar" class="btn btn-light btn-sm w-100 mb-2">Sembunyikan Sidebar</button>
+        <button id="themeToggle" class="btn btn-outline-light btn-sm w-100"><i class="bi bi-moon"></i> Toggle Theme</button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main id="main" class="flex-fill">
+      <header class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+        <div class="d-flex align-items-center">
+          <button id="btnToggle" class="btn btn-outline-primary d-md-none me-2"><i class="bi bi-list"></i></button>
+          <h5 class="m-0 page-title">Dashboard Admin</h5>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <input id="searchInput" class="form-control form-control-sm" placeholder="Cari nama / NIM..." style="min-width:200px"/>
+          <span class="badge bg-success" id="notifCount">0</span>
+        </div>
+      </header>
+
+      <!-- PAGE: Dashboard -->
+      <section id="pageDashboard" class="page-section p-3">
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <div class="card p-3">
+              <h6>Statistik Mahasiswa</h6>
+              <canvas id="chartProdi" height="160"></canvas>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="card p-3">
+              <h6>Ringkasan</h6>
+              <p>Total Mahasiswa: <strong id="totalCountDash">0</strong></p>
+              <p class="small text-muted">Data disimpan di LocalStorage</p>
+              <div class="mt-2">
+                <button id="exportCsv" class="btn btn-sm btn-outline-primary me-2"><i class="bi bi-download"></i> Export CSV</button>
+                <button id="exportPdf" class="btn btn-sm btn-outline-danger"><i class="bi bi-file-earmark-pdf"></i> Export PDF</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE: Mahasiswa (CRUD) -->
+      <section id="pageMahasiswa" class="page-section p-3 d-none">
+        <div class="row mb-3 g-3">
+          <div class="col-12 col-md-8">
+            <div class="card p-3">
+              <h6>Tambah Mahasiswa</h6>
+              <form id="formAdd" class="row g-2 align-items-end">
+                <div class="col-12 col-md-4">
+                  <label class="form-label small">Nama</label>
+                  <input type="text" id="inputName" class="form-control" placeholder="Nama" required>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label small">NIM</label>
+                  <input type="text" id="inputNim" class="form-control" placeholder="2411501..." required>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label small">Prodi</label>
+                  <input type="text" id="inputProdi" class="form-control" placeholder="Teknik Informatika" required>
+                </div>
+                <div class="col-12 col-md-2">
+                  <label class="form-label small">Foto</label>
+                  <input type="file" id="inputPhoto" accept="image/*" class="form-control form-control-sm"/>
+                </div>
+                <div class="col-12 text-end mt-1">
+                  <button type="submit" class="btn btn-primary btn-sm">Tambah</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="col-12 col-md-4">
+            <div class="card p-3">
+              <h6>Ringkasan</h6>
+              <p>Total Mahasiswa: <span id="totalCount">0</span></p>
+              <p class="small text-muted">Data otomatis tersimpan</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card p-3 mb-4">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <button id="sortName" class="btn btn-sm btn-outline-secondary me-1">Sort Nama</button>
+              <button id="sortNim" class="btn btn-sm btn-outline-secondary">Sort NIM</button>
+            </div>
+            <div class="small text-muted">Klik header juga untuk sort</div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle mb-0" id="dataTable">
+              <thead class="table-light">
+                <tr>
+                  <th data-sort="id" class="sortable"># <i class="bi bi-arrow-down-up"></i></th>
+                  <th data-sort="name" class="sortable">Nama <i class="bi bi-arrow-down-up"></i></th>
+                  <th data-sort="nim" class="sortable">NIM <i class="bi bi-arrow-down-up"></i></th>
+                  <th data-sort="prodi" class="sortable">Prodi <i class="bi bi-arrow-down-up"></i></th>
+                  <th>Foto</th>
+                  <th class="text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- PAGE: Pengaturan -->
+      <section id="pagePengaturan" class="page-section p-3 d-none">
+        <div class="card p-3">
+          <h6>Pengaturan</h6>
+          <div class="mb-2">
+            <label class="form-label small">Tema</label>
+            <div>
+              <button id="themeLight" class="btn btn-sm btn-outline-secondary me-1">Light</button>
+              <button id="themeDark" class="btn btn-sm btn-outline-secondary">Dark</button>
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small">Reset Data</label>
+            <div>
+              <button id="resetData" class="btn btn-sm btn-danger">Hapus Semua Data</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modals -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content">
+        <form id="formEdit">
+          <div class="modal-header">
+            <h5 class="modal-title">Edit Mahasiswa</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="editId">
+            <div class="mb-2">
+              <label class="form-label small">Nama</label>
+              <input id="editName" class="form-control" required />
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">NIM</label>
+              <input id="editNim" class="form-control" required />
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Prodi</label>
+              <input id="editProdi" class="form-control" required />
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Ganti Foto</label>
+              <input type="file" id="editPhoto" accept="image/*" class="form-control form-control-sm"/>
+            </div>
+            <div class="text-center">
+              <img id="editPreview" src="" alt="" style="max-width:120px; border-radius:6px; display:none"/>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-primary">Simpan</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirm Modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Konfirmasi Hapus</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <p>Yakin ingin menghapus data ini?</p>
+        </div>
+        <div class="modal-footer">
+          <button id="confirmDelete" class="btn btn-danger">Hapus</button>
+          <button class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Custom JS -->
+  <script src="script.js"></script>
+</body>
+</html>
